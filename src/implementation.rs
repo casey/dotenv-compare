@@ -6,7 +6,7 @@ pub(crate) enum Implementation {
 }
 
 impl Implementation {
-  pub(crate) fn run_all() -> Result<(), Error> {
+  pub(crate) fn generate_reports() -> Result<(), Error> {
     let binary = fs::canonicalize(env::args().next().unwrap()).map_err(Error::Canonicalize)?;
 
     let implementations = Path::new("implementation");
@@ -20,12 +20,12 @@ impl Implementation {
         io_error,
       })?;
 
-      Self::run(&binary, entry)?;
+      Self::generate_report(&binary, entry)?;
     }
     Ok(())
   }
 
-  pub(crate) fn run(binary: &Path, entry: DirEntry) -> Result<(), Error> {
+  pub(crate) fn generate_report(binary: &Path, entry: DirEntry) -> Result<(), Error> {
     let file_name = entry.file_name().to_str().unwrap().to_owned();
 
     let parts = file_name.split('-').collect::<Vec<&str>>();
@@ -36,7 +36,7 @@ impl Implementation {
 
     let implementation = Self::from_name(name);
 
-    implementation.create_report(binary, entry)?;
+    implementation.invoke(binary, entry)?;
 
     Ok(())
   }
@@ -49,7 +49,7 @@ impl Implementation {
     }
   }
 
-  fn create_report(self, binary: &Path, entry: DirEntry) -> Result<(), Error> {
+  fn invoke(self, binary: &Path, entry: DirEntry) -> Result<(), Error> {
     info!("creating report for {}", entry.path().display());
 
     let report = Path::new("./report")

@@ -10,7 +10,7 @@ impl Opt {
     if let Some(report) = self.report {
       Self::report(&report)
     } else {
-      Implementation::run_all()
+      Implementation::generate_reports()
     }
   }
 

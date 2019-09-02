@@ -1,7 +1,6 @@
 pub(crate) use std::{
   collections::BTreeMap,
   env,
-  ffi::OsString,
   fs::{self, DirEntry},
   io,
   path::{Path, PathBuf},

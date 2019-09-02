@@ -73,7 +73,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dotenv-spec"
+name = "dotenv-compare"
 version = "0.0.0"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
