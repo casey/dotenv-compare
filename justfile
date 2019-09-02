@@ -6,4 +6,4 @@ run:
 	cargo run
 
 watch:
-	cargo watch --ignore 'report/*' --exec 'run'
+	cargo watch --clear --ignore 'report/*' --ignore summary.csv --exec 'run generate'

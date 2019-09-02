@@ -1,1 +1,9 @@
-{"DOTENV_PLAIN":"HELLO"}
+{
+  "implementation": {
+    "language": "ruby",
+    "version": "2.7.5"
+  },
+  "results": {
+    "DOTENV_COMPARE_PLAIN": "HELLO"
+  }
+}

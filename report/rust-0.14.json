@@ -1,1 +1,9 @@
-{"DOTENV_PLAIN":"HELLO"}
+{
+  "implementation": {
+    "language": "rust",
+    "version": "0.14.1"
+  },
+  "results": {
+    "DOTENV_COMPARE_PLAIN": "HELLO"
+  }
+}

@@ -1,38 +1,63 @@
 use crate::common::*;
 
 #[derive(StructOpt)]
-pub(crate) struct Opt {
-  report: Option<PathBuf>,
+pub(crate) enum Opt {
+  #[structopt(name = "generate", help = "update all reports")]
+  Generate,
+  #[structopt(name = "save", help = "save a generated report")]
+  Save {
+    #[structopt(long = "language")]
+    language: Language,
+    #[structopt(long = "version")]
+    version: Version,
+    #[structopt(long = "destination")]
+    destination: PathBuf,
+  },
 }
 
 impl Opt {
   pub(crate) fn run(self) -> Result<(), Error> {
-    if let Some(report) = self.report {
-      Self::report(&report)
-    } else {
-      Implementation::generate_reports()
+    match self {
+      Opt::Generate => Self::generate(),
+      Opt::Save {
+        language,
+        version,
+        destination,
+      } => Self::save(language, version, &destination),
     }
   }
 
-  fn report(report: &Path) -> Result<(), Error> {
-    info!("generating report in {}", report.display());
-    let vars = env::vars_os()
-      .map(|(key, value)| {
-        (
-          key.to_string_lossy().into_owned(),
-          value.to_string_lossy().into_owned(),
-        )
-      })
-      .filter(|(key, _)| key.starts_with("DOTENV_"))
-      .collect::<BTreeMap<String, String>>();
+  fn generate() -> Result<(), Error> {
+    for entry in dir::entries(Implementation::directory())? {
+      let implementation: Implementation = entry.file_name().to_string_lossy().parse()?;
 
-    let json = serde_json::to_string(&vars).map_err(Error::ReportSerialize)?;
+      implementation.generate_report()?;
+    }
 
-    fs::write(report, json).map_err(|io_error| Error::Io {
+    let reports = dir::entries(Report::directory())?
+      .iter()
+      .map(|entry| Report::load(&entry.path()))
+      .collect::<Result<Vec<Report>, Error>>()?;
+
+    let tpsr = TestingProcedureSpecificationReport::from_reports(reports);
+
+    let csv = tpsr.csv();
+
+    let destination = Path::new("summary.csv");
+
+    fs::write(destination, csv).map_err(|io_error| Error::Io {
       io_error,
-      path: report.to_owned(),
+      path: destination.to_owned(),
     })?;
 
     Ok(())
+  }
+
+  fn save(language: Language, version: Version, destination: &Path) -> Result<(), Error> {
+    let json = Report::from_env(language, version.clone()).json()?;
+    fs::write(&destination, json).map_err(|io_error| Error::Io {
+      io_error,
+      path: destination.to_owned(),
+    })
   }
 }

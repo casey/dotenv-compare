@@ -1,91 +1,63 @@
 use crate::common::*;
 
-pub(crate) enum Implementation {
-  Rust,
-  Ruby,
+#[derive(Serialize, Deserialize)]
+pub(crate) struct Implementation {
+  pub(crate) language: Language,
+  pub(crate) version: Version,
 }
 
 impl Implementation {
-  pub(crate) fn generate_reports() -> Result<(), Error> {
-    let binary = fs::canonicalize(env::args().next().unwrap()).map_err(Error::Canonicalize)?;
-
-    let implementations = Path::new("implementation");
-
-    for entry in fs::read_dir(implementations).map_err(|io_error| Error::Io {
-      path: implementations.to_owned(),
-      io_error,
-    })? {
-      let entry = entry.map_err(|io_error| Error::Io {
-        path: implementations.to_owned(),
-        io_error,
-      })?;
-
-      Self::generate_report(&binary, entry)?;
-    }
-    Ok(())
+  pub(crate) fn directory() -> &'static Path {
+    Path::new("implementation")
   }
 
-  pub(crate) fn generate_report(binary: &Path, entry: DirEntry) -> Result<(), Error> {
-    let file_name = entry.file_name().to_str().unwrap().to_owned();
+  pub(crate) fn generate_report(&self) -> Result<(), Error> {
+    let executable = path::canonicalize(env::args().next().unwrap())?;
 
-    let parts = file_name.split('-').collect::<Vec<&str>>();
-
-    assert_eq!(parts.len(), 2);
-
-    let name = parts[0];
-
-    let implementation = Self::from_name(name);
-
-    implementation.invoke(binary, entry)?;
-
-    Ok(())
-  }
-
-  fn from_name(name: &str) -> Implementation {
-    match name {
-      "rust" => Implementation::Rust,
-      "ruby" => Implementation::Ruby,
-      _ => panic!("unexpected implementation name: {}", name),
-    }
-  }
-
-  fn invoke(self, binary: &Path, entry: DirEntry) -> Result<(), Error> {
-    info!("creating report for {}", entry.path().display());
-
-    let report = Path::new("./report")
-      .canonicalize()
-      .map_err(Error::Canonicalize)?
-      .join(entry.file_name())
+    let destination = path::canonicalize(Report::directory())?
+      .join(self.slug())
       .with_extension("json");
 
-    match self {
-      Self::Rust => {
-        let manifest = entry.path().join("Cargo.toml");
+    let directory = Self::directory().join(self.slug());
 
-        Command::new("cargo")
-          .arg("run")
-          .arg("--manifest-path")
-          .arg(manifest)
-          .arg(binary)
-          .arg(report)
-          .status()
-          .unwrap();
+    let args_owned: Vec<OsString> = vec![
+      executable.into(),
+      "save".into(),
+      "--language".into(),
+      self.language.to_string().into(),
+      "--version".into(),
+      self.version.to_string().into(),
+      "--destination".into(),
+      destination.into(),
+    ];
 
-        Ok(())
-      }
+    let args: Vec<&OsStr> = args_owned.iter().map(|arg| arg.as_ref()).collect();
 
-      Self::Ruby => {
-        Command::new("bundle")
-          .arg("exec")
-          .arg("./main")
-          .arg(binary)
-          .arg(report)
-          .current_dir(entry.path())
-          .status()
-          .unwrap();
+    self.language.generate_report(&directory, &args)
+  }
 
-        Ok(())
-      }
+  fn slug(&self) -> String {
+    format!("{}-{}", self.language, self.version)
+  }
+}
+
+impl FromStr for Implementation {
+  type Err = Error;
+
+  fn from_str(text: &str) -> Result<Self, Self::Err> {
+    let parts = text.split('-').collect::<Vec<&str>>();
+
+    if parts.len() != 2 {
+      return Err(Error::ImplementationFormat {
+        text: text.to_owned(),
+      });
     }
+
+    Ok(Implementation {
+      language: parts[0].parse()?,
+      version: parts[1]
+        .parse()
+        .map_err(|semver_error| Error::Version { semver_error })?,
+    })
   }
 }
