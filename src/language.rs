@@ -1,6 +1,6 @@
 use crate::common::*;
 
-#[derive(Serialize, Deserialize, Copy, Clone)]
+#[derive(Serialize, Deserialize, Copy, Clone, PartialEq)]
 pub(crate) enum Language {
   #[serde(rename = "rust")]
   Rust,

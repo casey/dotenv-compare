@@ -1,2 +1,4 @@
-test,ruby 2.7.5,rust 0.14.1
-plain,HELLO,HELLO
+test,expected,ruby 2.7.5,rust 0.14.1
+double_quote,HELLO,✔️,✔️
+plain,HELLO,✔️,✔️
+single_quote,HELLO,✔️,✔️

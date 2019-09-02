@@ -4,6 +4,8 @@
     "version": "0.14.1"
   },
   "results": {
-    "DOTENV_COMPARE_PLAIN": "HELLO"
+    "DOTENV_COMPARE_DOUBLE_QUOTE": "HELLO",
+    "DOTENV_COMPARE_PLAIN": "HELLO",
+    "DOTENV_COMPARE_SINGLE_QUOTE": "HELLO"
   }
 }
