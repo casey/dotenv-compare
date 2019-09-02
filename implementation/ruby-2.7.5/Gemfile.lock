@@ -1,0 +1,16 @@
+PATH
+  remote: dotenv
+  specs:
+    dotenv (2.7.5)
+
+GEM
+  specs:
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dotenv!
+
+BUNDLED WITH
+   2.0.2
