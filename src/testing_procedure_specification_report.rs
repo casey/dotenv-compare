@@ -45,7 +45,10 @@ impl TestingProcedureSpecificationReport {
       for test in tests {
         let mut row: Vec<&str> = Vec::new();
 
-        let name = test.trim_start_matches("DOTENV_COMPARE_").to_lowercase();
+        let name = test
+          .trim_start_matches("DOTENV_COMPARE_")
+          .replace("_", " ")
+          .to_lowercase();
 
         let want = canonical.results.get(&test).unwrap();
 
