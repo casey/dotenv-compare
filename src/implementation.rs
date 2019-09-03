@@ -14,9 +14,10 @@ impl Implementation {
   pub(crate) fn generate_report(&self) -> Result<(), Error> {
     let executable = path::canonicalize(env::args().next().unwrap())?;
 
-    let destination = path::canonicalize(Report::directory())?
-      .join(self.slug())
-      .with_extension("json");
+    let destination =
+      path::canonicalize(Report::directory())?.join(format!("{}.json", self.slug()));
+
+    dbg!(&destination);
 
     let directory = Self::directory().join(self.slug());
 
